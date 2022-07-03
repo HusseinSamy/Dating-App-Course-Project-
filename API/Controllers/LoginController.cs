@@ -1,6 +1,7 @@
 ﻿using Dating_App.Data;
 using Dating_App.DTOs;
 using Dating_App.Entities;
+using Dating_App.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,14 +13,16 @@ namespace Dating_App.Controllers
     public class LoginController : BaseApiController
     {
         private readonly DataContext _context;
+        private readonly ITokenService _tokenService;
 
-        public LoginController(DataContext context)
+        public LoginController(DataContext context, ITokenService tokenService)
         {
             _context = context;
+            _tokenService = tokenService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<AppUser>> Login(LoginDto loginDto)
+        public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
              var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
 
@@ -33,7 +36,11 @@ namespace Dating_App.Controllers
             {
                 if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("invalid password");
             }
-            return user;
+            return new UserDto
+            {
+                Username = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            };
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Dating_App.Data;
 using Dating_App.DTOs;
 using Dating_App.Entities;
+using Dating_App.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,14 +13,16 @@ namespace Dating_App.Controllers
     public class AccountController : BaseApiController
     {
         private readonly DataContext _context;
+        private readonly ITokenService _tokenService;
 
-        public AccountController(DataContext context)
+        public AccountController(DataContext context, ITokenService tokenService)
         {
             _context = context;
+            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<RegisterDto>> Register (RegisterDto registerDto)
+        public async Task<ActionResult<UserDto>> Register (RegisterDto registerDto)
         {
             if (await UserExists(registerDto.Username)) return BadRequest("username already exist");
 
@@ -33,7 +36,7 @@ namespace Dating_App.Controllers
             };
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return registerDto;
+            return new UserDto { Username = user.UserName, Token = _tokenService.CreateToken(user)};
         }
 
         private async Task<bool> UserExists (string username)

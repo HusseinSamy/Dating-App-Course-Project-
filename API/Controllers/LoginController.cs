@@ -2,6 +2,7 @@
 using Dating_App.DTOs;
 using Dating_App.Entities;
 using Dating_App.Interfaces;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +19,13 @@ namespace Dating_App.Controllers
         public LoginController(DataContext context, ITokenService tokenService)
         {
             _context = context;
-            _tokenService = tokenService;
+            
         }
 
         [HttpGet]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-             var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
+            var user = await _context.Users.SingleOrDefaultAsync(x => x.UserName == loginDto.Username);
 
             if (user == null) Unauthorized("no user found");
 
